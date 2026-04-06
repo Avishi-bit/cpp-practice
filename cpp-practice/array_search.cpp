@@ -7,7 +7,7 @@ int main(){
     // searching an array
     // search number = 30
     int search_token = 30;
-    for (int cntr = 0; cntr <= 5; cntr++){
+    for (int cntr = 0; cntr < 5; cntr++){
         if (my_numbers[cntr] == search_token){
             cout << "value found at index: " << cntr << endl;
             break;
