@@ -29,7 +29,7 @@ void print_array(int arr_to_p[][3], int n_rows, int n_col){
 }
 
 int main(){
-    int arr1[2][3] = {{5,4,8},{23,67,21}};
+    int arr1[2][3] = {{8,2,4},{56,67,21}};
 
     sort_array(arr1,2,3);
 
