@@ -1,3 +1,15 @@
+/* Problem Statement
+A university receives thousands of research papers.
+
+Build a system that:
+Stones papers.
+Stores authors.
+Stores keywords.
+Searches papers by keyword.
+Counts keyword frequencies.
+Finds most common research topics.
+Maintains dynamic collections.*/
+
 #include <iostream>
 #include <vector>
 
