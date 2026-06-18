@@ -12,6 +12,8 @@ Maintains dynamic collections.*/
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -29,125 +31,103 @@ int first_id = 100;
 void search_paper(){
 
     string key;
-    
+
     cin.ignore();
     cout << "Enter keyword to search: ";
     getline(cin,key);
-    cin.ignore();
 
     bool found = false;
 
-    for(int i=0;i<r_info.size();i++){
-
-        for(int j=0;j<r_info[i].keywords.size();j++){
-
-            if(r_info[i].keywords[j] == key){
-
-                cout << "Paper ID: " << r_info[i].rpaper_id << endl;
-                cout << "Topic: " << r_info[i].topic << endl;
-                cout << "---------------------------------------------------------------";
-                found = true;
-                break;
-            }
+    for(auto& paper : r_info){
+        if(find(paper.keywords.begin(),paper.keywords.end(),key) != paper.keywords.end()){
+            cout << "Paper ID: "<< paper.rpaper_id << endl;
+            cout << "Topic: "<< paper.topic << endl;
+            cout << "---------------------------------------------------------------" << endl;
+            found = true;
         }
     }
 
-    if(!found)
+    if(!found){
         cout << "No paper found." << endl;
+    }
 }
 
 void keyword_freq(){
-
     string key;
     cin.ignore();
     cout << "Enter keyword: ";
     getline(cin,key);
 
     int count = 0;
-
-    for(int i=0;i<r_info.size();i++){
-        for(int j=0;j<r_info[i].keywords.size();j++){
-            if(r_info[i].keywords[j] == key){
-                count++;
-                break;
-            }
+    for(const auto& paper : r_info){
+        if(find(paper.keywords.begin(),paper.keywords.end(),key) != paper.keywords.end()){
+            count++;
         }
     }
 
-    cout << "Frequency: " << count << endl;
+    cout << "Frequency: "<< count << endl;
 }
 
 void common_res(){
 
-    if(r_info.size() == 0){
-        cout << "No papers available." << endl;
+    if(r_info.empty()){
+        cout << "No papers available."<< endl;
         return;
     }
 
-    struct topic_count{
-        string topic;
-        int count;
-    };
-
-    vector<topic_count> topic_info;
-
-    for(int i = 0; i < r_info.size(); i++){
+    vector<pair<string,int>> topic_info;
+    for(auto& paper : r_info){
         bool found = false;
-        for(int j = 0; j < topic_info.size(); j++){
-            if(r_info[i].topic == topic_info[j].topic){
-                topic_info[j].count++;
+        for(auto& topic : topic_info){
+            if(topic.first == paper.topic){
+                topic.second++;
                 found = true;
                 break;
             }
         }
 
         if(!found){
-            topic_count temp;
-            temp.topic = r_info[i].topic;
-            temp.count = 1;
-            topic_info.push_back(temp);
+            topic_info.push_back({paper.topic,1});
         }
     }
 
-    int max_index = 0;
-
-    for(int i = 1; i < topic_info.size(); i++){
-        if(topic_info[i].count > topic_info[max_index].count)
-            max_index = i;
+    auto max_topic = topic_info.begin();
+    for(auto i = topic_info.begin();i != topic_info.end();i++){
+        if((*i).second > (*max_topic).second){
+            max_topic = i;
+        }
     }
 
-    cout << "Most Common Topic: "<< topic_info[max_index].topic << endl;
-    cout << "Frequency: "<< topic_info[max_index].count << endl;
+    cout << "Most Common Topic: "<< max_topic->first<< endl;
+    cout << "Frequency: "<< max_topic->second<< endl;
 }
 
 void add_paper(){
 
-    rpaper p;
-
-    p.rpaper_id = first_id;
-
-    int num;
-    cout << "Enter number of authors: "; cin >> num;
     cin.ignore();
-
-    for(int i=0;i<num;i++){
-        string author;
-        cout << "Author " << i+1 << ": ";
-        getline(cin,author);
-
-        p.author_names.push_back(author);
+    rpaper p;
+    p.rpaper_id = first_id;
+    
+    string name;
+    while(true){
+        cout << "Author Name (Press Enter To Exit): ";
+        getline(cin,name);
+        
+        if(name.empty()){
+            break;
+        }
+        p.author_names.push_back(name);
     }
 
-    cout << "Enter number of keywords: ";
-    cin >> num;
-    cin.ignore();
+    string keyw;
+    while(true){
+        cout << "Keyword (Press Enter To Exit): ";
+        getline(cin,keyw);
 
-    for(int i=0;i<num;i++){
-        string keyword;
-        cout << "Keyword " << i+1 << ": ";
-        getline(cin,keyword);
-
-        p.keywords.push_back(keyword);
+        if(keyw.empty()){
+            break;
+        }
+        p.keywords.push_back(keyw);
     }
 
     cout << "Enter abstract: ";
@@ -158,24 +138,25 @@ void add_paper(){
 
     r_info.push_back(p);
 
-    cout << "Paper added successfully." <<endl;
+    cout << "Paper added successfully." << endl;
     first_id++;
 }
 
 void del_paper(){
 
     int id;
-    cout << "Enter Paper ID: "; cin >> id;
+    cout << "Enter Paper ID: ";
+    cin >> id;
 
-    for(int i=0;i<r_info.size();i++){
-        if(r_info[i].rpaper_id == id){
-            r_info.erase(r_info.begin()+i);
-            cout << "Paper deleted." <<endl;
+    for(auto i = r_info.begin();i != r_info.end();i++){
+        if((*i).rpaper_id == id){
+            r_info.erase(i);
+            cout << "Paper deleted."<< endl;
             return;
         }
     }
 
-    cout << "Paper not found." <<endl;
+    cout << "Paper not found." << endl;
 }
 
 void edit_paper(){
@@ -184,40 +165,121 @@ void edit_paper(){
     cout << "Enter Paper ID: "; cin >> id;
     cin.ignore();
 
-    int paper_idx = -1;
-    for(int i = 0; i < r_info.size(); i++){
-        if(r_info[i].rpaper_id == id){
-            paper_idx = i;
+    auto found = r_info.end();
+    for(auto i = r_info.begin();i != r_info.end();i++){
+        if((*i).rpaper_id == id){
+            found = i;
             break;
         }
     }
 
-    if(paper_idx == -1){
-        cout << "Paper not found.";
+    if(found == r_info.end()){
+        cout << "Paper not found." << endl;
         return;
     }
 
     int choice_1;
 
     do{
-
-        cout << "========== EDIT MENU =========="<<endl;
-        cout << "1. Edit Topic"<<endl;
-        cout << "2. Edit Abstract"<<endl;
-        cout << "3. Add Author"<<endl;
-        cout << "4. Remove Author"<<endl;
-        cout << "5. Add Keyword"<<endl;
-        cout << "6. Remove Keyword"<<endl;
-        cout << "7. Exit Editing"<<endl;
+        cout << "========== EDIT MENU ===========" << endl;
+        cout << "1.Edit Topic"<< endl;
+        cout << "2.Edit Abstract" << endl;
+        cout << "3.Add Author" << endl;
+        cout << "4.Remove Author" << endl;
+        cout << "5.Add Keyword" << endl;
+        cout << "6.Remove Keyword" << endl;
+        cout << "7.Exit Editing" << endl;
 
         cout << "Enter choice: "; cin >> choice_1;
         cin.ignore();
 
-    } while (choice_1!=7);
+        switch(choice_1){
+            case 1:
+            {
+                cout << "Enter New Topic: ";
+                getline(cin,(*found).topic);
+                cout << "Topic Updated."<< endl;
+                break;
+            }
+
+            case 2:
+            {
+                cout << "Enter New Abstract: ";
+                getline(cin,(*found).abstract);
+                cout << "Abstract Updated." << endl;
+                break;
+            }
+
+            case 3:
+            {
+                string author;
+                cout << "Author Name: ";
+                getline(cin,author);
+                
+                (*found).author_names.push_back(author);
+                cout << "Author Added."<< endl;
+                break;
+            }
+
+            case 4:
+            {
+                string author;
+                cout << "Author Name To Remove: ";
+                getline(cin,author);
+
+                auto find_author = find((*found).author_names.begin(),(*found).author_names.end(),author);
+                if(find_author != (*found).author_names.end()){
+                    (*found).author_names.erase(find_author);
+                    cout << "Author Removed."<< endl;
+                }
+                
+                else{
+                    cout << "Author Not Found." << endl;
+                }
+                break;
+            }
+            
+            case 5:
+            {
+                string keyword;
+                cout << "Keyword: ";
+                getline(cin,keyword);
+                
+                (*found).keywords.push_back(keyword);
+                cout << "Keyword Added." << endl;
+                break;
+            }
+
+            case 6:
+            {
+                string keyword;
+                cout << "Keyword To Remove: ";
+                getline(cin,keyword);
+                
+                auto find_keyw = find((*found).keywords.begin(),(*found).keywords.end(),keyword);
+
+                if(find_keyw != (*found).keywords.end()){
+                    (*found).keywords.erase(find_keyw);
+                    cout << "Keyword Removed." << endl;
+                }
+                else{
+                    cout << "Keyword Not Found." << endl;
+                }
+                break;
+            }
+
+            case 7:
+                break;
+
+            default:
+                cout << "Invalid Choice." << endl;
+        }
+
+    }while(choice_1 != 7);
 }
 
 int main(){
-    
+
     int choice = -1;
     do{
         cout << "=================MENU==================" << endl;
@@ -241,7 +303,6 @@ int main(){
             case 3:
                 common_res();
                 break;
-
             case 4:
                 add_paper();
                 break;
@@ -253,11 +314,13 @@ int main(){
                 break;
             case 7:
                 break;
-            
             default:
                 cout << "Invalid choice.";
         }
 
     }while(choice!=7);
 
+    cout << "Thank you.";
 }
+
+// change the for loops to iterators, use find and all
