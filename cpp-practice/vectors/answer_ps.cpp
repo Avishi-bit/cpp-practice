@@ -98,8 +98,8 @@ void common_res(){
         }
     }
 
-    cout << "Most Common Topic: "<< max_topic->first<< endl;
-    cout << "Frequency: "<< max_topic->second<< endl;
+    cout << "Most Common Topic: "<< (*max_topic).first<< endl;
+    cout << "Frequency: "<< (*max_topic).second<< endl;
 }
 
 void add_paper(){
